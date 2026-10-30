@@ -1,4 +1,12 @@
-<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body style="margin:0">
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#141a2e">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lucca60">
+</head><body style="margin:0">
 <title>Lucca60 Bussola</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -177,6 +185,7 @@ nav.tabs .wrap{display:grid;grid-template-columns:repeat(4,1fr)}
     <div class="warn">Il programma in questa app è raccolto da articoli di stampa, perché il sito ufficiale non era raggiungibile durante la preparazione. Orari e sale possono cambiare: controlla sempre il <a class="link" style="color:#141a2e;text-decoration:underline" href="https://lucca2026.luccacomicsandgames.com/it/programma" target="_blank" rel="noopener">programma ufficiale</a> o l'app ufficiale LuccaCG Assistant.</div>
     <div class="info">
       <div class="blk"><h3>Il mio programma</h3><p>Gli eventi segnati con la stella restano salvati su questo dispositivo.</p><div class="list" id="favList"></div></div>
+      <div class="blk"><h3>Uso offline</h3><p id="offlineStatus">Apri l'app una volta con la rete per salvarla sul telefono.</p><p>Per averla come app: dal browser scegli "Aggiungi a schermata Home" (Safari: tasto Condividi; Chrome: menu ⋮).</p></div>
       <div class="blk"><h3>Orari</h3><p>Padiglioni aperti dalle 9:00 alle 19:00. Concerti, spettacoli e incontri serali possono proseguire oltre.</p><p>Le mostre di Palazzo Guinigi sono aperte dal 3 ottobre; <i>Legacy</i> resta visitabile fino al 30 settembre 2027.</p></div>
       <div class="blk"><h3>Biglietti giornalieri</h3>
         <div style="overflow-x:auto"><table class="prices"><tbody>
@@ -552,4 +561,17 @@ window.addEventListener("hashchange",()=>{const h=location.hash.slice(1);if(["ne
 })();
 </script>
 
+<script>
+(function(){
+  const el=document.getElementById("offlineStatus");
+  const set=t=>{if(el)el.textContent=t};
+  function net(){if(!navigator.onLine)set("Sei offline: stai usando la copia salvata sul telefono. Il GPS funziona lo stesso.")}
+  window.addEventListener("offline",net);
+  window.addEventListener("online",()=>set("Di nuovo online. L'app è salvata per l'uso offline."));
+  if(!("serviceWorker" in navigator)||!/^https?:$/.test(location.protocol)){set("Uso offline non disponibile in questo browser.");return}
+  navigator.serviceWorker.register("sw.js").then(()=>navigator.serviceWorker.ready).then(()=>{
+    set(navigator.onLine?"Pronta per l'uso offline: puoi aprirla anche senza rete.":"Sei offline: stai usando la copia salvata sul telefono. Il GPS funziona lo stesso.");
+  }).catch(()=>set("Non è stato possibile salvare l'app per l'uso offline."));
+})();
+</script>
 </body></html>

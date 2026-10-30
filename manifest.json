@@ -1,0 +1,18 @@
+{
+  "name": "Lucca60 Bussola",
+  "short_name": "Lucca60",
+  "description": "Guida tascabile a Lucca Comics & Games 2026: eventi vicini, ricerca per tema, mappa e il tuo programma.",
+  "lang": "it",
+  "start_url": "./#near",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3f4f8",
+  "theme_color": "#141a2e",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
+    {"src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml"}
+  ]
+}
