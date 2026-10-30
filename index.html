@@ -1,0 +1,555 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body style="margin:0">
+<title>Lucca60 Bussola</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: phone-first app shell — sticky header, single scrolling column, fixed bottom tab bar. Comic-panel cards with ink borders. */
+:root{
+  --paper:#f3f4f8; --panel:#ffffff; --ink:#141a2e; --ink-2:#4a5270; --line:#141a2e;
+  --cobalt:#2340d6; --cobalt-soft:#e2e7ff; --marigold:#ffc93c; --now:#0f8a4f; --muted:#8a90a8;
+  --walls:#d9dcea; --street:#e9ebf3;
+  --f-display:"Archivo Black","Arial Black",Impact,sans-serif;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --shadow:3px 3px 0 var(--line);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0f1220; --panel:#181c30; --ink:#eef0fa; --ink-2:#aeb4cf; --line:#3a4170;
+  --cobalt:#7d93ff; --cobalt-soft:#232a52; --marigold:#ffcf52; --now:#3ed38a; --muted:#7a809c;
+  --walls:#262b48; --street:#1d2138; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --paper:#0f1220; --panel:#181c30; --ink:#eef0fa; --ink-2:#aeb4cf; --line:#3a4170;
+  --cobalt:#7d93ff; --cobalt-soft:#232a52; --marigold:#ffcf52; --now:#3ed38a; --muted:#7a809c;
+  --walls:#262b48; --street:#1d2138; color-scheme:dark;}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--paper);color:var(--ink)}
+body{font-family:var(--f-body);font-size:16px;line-height:1.45;padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:#141a2e}
+.wrap{max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:#141a2e;color:#f3f4f8;border-bottom:2px solid var(--line);--hdr-fg:#f3f4f8}
+header.top .wrap{display:flex;align-items:center;gap:12px;padding-block:10px}
+.logo{font-family:var(--f-display);font-size:22px;letter-spacing:.5px;color:var(--hdr-fg);line-height:1}
+.logo b{background:var(--marigold);color:#141a2e;padding:0 6px;margin-left:4px;display:inline-block;transform:rotate(-3deg)}
+.clock{margin-left:auto;font-family:var(--f-mono);font-size:12px;color:var(--hdr-fg);opacity:.8;text-align:right}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;text-wrap:balance;margin:0}
+h2{font-size:24px;line-height:1.1}
+section.view{padding-block:18px 8px;display:flex;flex-direction:column;gap:16px}
+.lede{color:var(--ink-2);margin:0;max-width:62ch}
+.btn{font:inherit;font-weight:700;border:2px solid var(--line);background:var(--panel);color:var(--ink);padding:10px 14px;border-radius:10px;cursor:pointer;box-shadow:var(--shadow);display:inline-flex;align-items:center;gap:8px}
+.btn.primary{background:var(--cobalt);color:#fff;border-color:var(--line)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--line)}
+.btn:focus-visible,.chip:focus-visible,select:focus-visible,input:focus-visible,.tab:focus-visible{outline:3px solid var(--marigold);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.locbox{border:2px solid var(--line);border-radius:14px;background:var(--panel);padding:14px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow)}
+.locbox .where{font-weight:700}
+.locbox .where small{display:block;font-weight:400;color:var(--ink-2)}
+label.lbl{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-2);font-weight:700}
+select,input[type=search]{font:inherit;color:var(--ink);background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:thin}
+.chip{flex:0 0 auto;font:inherit;font-size:14px;font-weight:700;border:2px solid var(--line);background:var(--panel);color:var(--ink);padding:6px 12px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.list{display:flex;flex-direction:column;gap:12px}
+.card{background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:64px 1fr;gap:4px 12px;position:relative}
+.card .time{font-family:var(--f-mono);font-weight:700;font-size:15px;line-height:1.2;grid-column:1;grid-row:1 / span 5}
+.card > :not(.time){grid-column:2}
+.card .time small{display:block;font-weight:500;font-size:12px;color:var(--ink-2)}
+.card h3{font-family:var(--f-body);font-weight:700;font-size:17px;line-height:1.25;min-width:0}
+.card .meta{font-size:14px;color:var(--ink-2);min-width:0}
+.card .desc{font-size:14px;margin:2px 0 0;min-width:0}
+.card .acts{grid-column:2;display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;align-items:center}
+.card a,.link{color:var(--cobalt);font-weight:700;font-size:14px;text-decoration:none}
+.card a:hover{text-decoration:underline}
+.tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;border-radius:5px;background:var(--cobalt-soft);color:var(--ink)}
+.pill{font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;border:1.5px solid currentColor;white-space:nowrap}
+.pill.now{color:var(--now)}
+.pill.soon{color:var(--ink);background:var(--marigold);border-color:var(--marigold);color:#141a2e}
+.pill.past{color:var(--muted)}
+.pill.tbc{color:var(--ink-2);border-style:dashed}
+.dist{font-family:var(--f-mono);font-size:13px;font-weight:700}
+.fav{margin-left:auto;background:none;border:none;font-size:22px;line-height:1;cursor:pointer;color:var(--muted);padding:2px 4px}
+.fav[aria-pressed="true"]{color:var(--marigold);text-shadow:0 0 0 var(--line)}
+.card.is-past{opacity:.6}
+.empty{border:2px dashed var(--line);border-radius:12px;padding:18px;color:var(--ink-2);text-align:center}
+.mapbox{border:2px solid var(--line);border-radius:14px;overflow:hidden;background:var(--street);box-shadow:var(--shadow)}
+.mapbox svg{display:block;width:100%;height:auto;touch-action:manipulation}
+.maphint{font-size:13px;color:var(--ink-2);margin:0}
+.venue-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.venue{border:2px solid var(--line);border-radius:10px;background:var(--panel);padding:10px 12px;cursor:pointer;text-align:left;font:inherit;color:var(--ink)}
+.venue b{display:block}
+.venue span{font-size:13px;color:var(--ink-2)}
+.info{display:flex;flex-direction:column;gap:12px}
+.info .blk{background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:14px}
+.info h3{font-size:18px;margin-bottom:6px}
+.info p,.info li{margin:0 0 6px;max-width:65ch}
+.info ul{padding-left:18px;margin:0}
+table.prices{border-collapse:collapse;font-family:var(--f-mono);font-size:14px;font-variant-numeric:tabular-nums}
+table.prices td{padding:3px 14px 3px 0;border-bottom:1px solid var(--walls)}
+.warn{background:var(--marigold);color:#141a2e;border:2px solid var(--line);border-radius:12px;padding:10px 14px;font-size:14px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--panel);border-top:2px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.tabs .wrap{display:grid;grid-template-columns:repeat(4,1fr)}
+.tab{font:inherit;background:none;border:none;color:var(--ink-2);padding:10px 4px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;font-weight:700}
+.tab svg{width:24px;height:24px}
+.tab[aria-selected="true"]{color:var(--cobalt)}
+.tab[aria-selected="true"] svg{transform:translateY(-1px)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header class="top"><div class="wrap">
+  <div class="logo">LUCCA<b>60</b></div>
+  <div class="clock" id="clock">—</div>
+</div></header>
+
+<main class="wrap">
+  <!-- VICINO A ME -->
+  <section class="view" id="v-near" data-view="near">
+    <div>
+      <h2>Cosa c'è vicino a te</h2>
+      <p class="lede">Eventi e mostre ordinati per distanza a piedi dalla tua posizione.</p>
+    </div>
+    <div class="locbox">
+      <div class="where" id="whereLabel">Posizione: Piazza Napoleone <small>Esempio. Usa il GPS o scegli dove ti trovi.</small></div>
+      <div class="row">
+        <button class="btn primary" id="gpsBtn" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+          Usa la mia posizione</button>
+        <div style="flex:1;min-width:180px">
+          <label class="sr" for="placeSel">Sono vicino a</label>
+          <select id="placeSel"></select>
+        </div>
+      </div>
+      <p class="maphint" id="gpsMsg" hidden></p>
+    </div>
+    <div>
+      <label class="lbl" for="whenSel">Quando</label>
+      <div class="chips" id="whenChips" role="group" aria-label="Quando">
+        <button class="chip" data-when="now" aria-pressed="true" type="button">Adesso e prossime 3 ore</button>
+        <button class="chip" data-when="today" aria-pressed="false" type="button">Tutto oggi</button>
+        <button class="chip" data-when="all" aria-pressed="false" type="button">Tutti i giorni</button>
+      </div>
+    </div>
+    <div class="list" id="nearList"></div>
+  </section>
+
+  <!-- CERCA -->
+  <section class="view" id="v-search" data-view="search" hidden>
+    <div>
+      <h2>Cerca per tema</h2>
+      <p class="lede">Scrivi un nome, un titolo o un luogo, oppure scegli un tema.</p>
+    </div>
+    <div>
+      <label class="sr" for="q">Cerca</label>
+      <input type="search" id="q" placeholder="es. Zerocalcare, anime, Cinema Astra, cosplay…" autocomplete="off">
+    </div>
+    <div>
+      <span class="lbl">Temi</span>
+      <div class="chips" id="themeChips" role="group" aria-label="Temi"></div>
+    </div>
+    <div>
+      <span class="lbl">Giorno</span>
+      <div class="chips" id="dayChips" role="group" aria-label="Giorno"></div>
+    </div>
+    <div class="row"><span class="maphint" id="countLbl"></span></div>
+    <div class="list" id="searchList"></div>
+  </section>
+
+  <!-- MAPPA -->
+  <section class="view" id="v-map" data-view="map" hidden>
+    <div>
+      <h2>Mappa dentro le Mura</h2>
+      <p class="lede">Tocca un luogo per vedere cosa ospita. Tocca un punto vuoto per dire all'app dove ti trovi.</p>
+    </div>
+    <div class="mapbox"><svg id="map" viewBox="0 0 600 420" role="img" aria-label="Mappa schematica del centro di Lucca con le sedi del festival"></svg></div>
+    <p class="maphint">Mappa schematica, posizioni approssimate. Per le indicazioni precise usa il link "Portami lì".</p>
+    <h3 style="font-size:18px" id="venueTitle">Luoghi del festival</h3>
+    <div id="venuePanel" class="list" hidden></div>
+    <div class="venue-list" id="venueList"></div>
+  </section>
+
+  <!-- INFO -->
+  <section class="view" id="v-info" data-view="info" hidden>
+    <div>
+      <h2>Info utili</h2>
+      <p class="lede">60ª edizione, tema <b>Legacy</b>. Dal 28 ottobre al 1° novembre 2026.</p>
+    </div>
+    <div class="warn">Il programma in questa app è raccolto da articoli di stampa, perché il sito ufficiale non era raggiungibile durante la preparazione. Orari e sale possono cambiare: controlla sempre il <a class="link" style="color:#141a2e;text-decoration:underline" href="https://lucca2026.luccacomicsandgames.com/it/programma" target="_blank" rel="noopener">programma ufficiale</a> o l'app ufficiale LuccaCG Assistant.</div>
+    <div class="info">
+      <div class="blk"><h3>Il mio programma</h3><p>Gli eventi segnati con la stella restano salvati su questo dispositivo.</p><div class="list" id="favList"></div></div>
+      <div class="blk"><h3>Orari</h3><p>Padiglioni aperti dalle 9:00 alle 19:00. Concerti, spettacoli e incontri serali possono proseguire oltre.</p><p>Le mostre di Palazzo Guinigi sono aperte dal 3 ottobre; <i>Legacy</i> resta visitabile fino al 30 settembre 2027.</p></div>
+      <div class="blk"><h3>Biglietti giornalieri</h3>
+        <div style="overflow-x:auto"><table class="prices"><tbody>
+          <tr><td>Mer 28 ottobre</td><td>€ 26,50</td></tr>
+          <tr><td>Gio 29 ottobre</td><td>€ 29,50</td></tr>
+          <tr><td>Ven 30 ottobre</td><td>€ 33,50</td></tr>
+          <tr><td>Sab 31 ottobre</td><td>€ 34,50</td></tr>
+          <tr><td>Dom 1 novembre</td><td>€ 33,50</td></tr>
+        </tbody></table></div>
+        <p style="margin-top:8px">Vendita su <a class="link" href="https://www.ticketone.it/artist/lucca-comics-games/" target="_blank" rel="noopener">TicketOne</a>. Ingresso gratuito per i nati dal 1° gennaio 2017. Tetto di 80.000 ingressi al giorno.</p></div>
+      <div class="blk"><h3>Le aree</h3><ul>
+        <li><b>Comics</b>: Piazza Napoleone e piazze vicine</li>
+        <li><b>Games</b> (gioco da tavolo): Padiglione Carducci</li>
+        <li><b>Videogames</b>: Piazzale Verdi e Cavallerizza</li>
+        <li><b>Junior</b>: Family Palace al Real Collegio</li>
+        <li><b>Japan Town</b>: Polo Fiere (fuori dalle Mura)</li>
+        <li><b>eSports</b>: Palazzetto dello Sport</li>
+        <li><b>Movie</b>: Cinema Astra, Teatro del Giglio</li>
+        <li>Gruppo Mondadori in Piazza Antelminelli, TASCHEN al Padiglione San Martino</li>
+      </ul></div>
+      <div class="blk"><h3>Link ufficiali</h3><ul>
+        <li><a class="link" href="https://lucca2026.luccacomicsandgames.com/it/programma" target="_blank" rel="noopener">Programma ufficiale 2026</a></li>
+        <li><a class="link" href="https://www.luccacomicsandgames.com/" target="_blank" rel="noopener">Sito Lucca Comics &amp; Games</a></li>
+        <li>App ufficiale: LuccaCG Assistant (mappa interattiva e prenotazione eventi a posti limitati)</li>
+      </ul></div>
+    </div>
+  </section>
+</main>
+
+<nav class="tabs" aria-label="Sezioni"><div class="wrap" role="tablist">
+  <button class="tab" role="tab" data-go="near" aria-selected="true" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Vicino</button>
+  <button class="tab" role="tab" data-go="search" aria-selected="false" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/></svg>Cerca</button>
+  <button class="tab" role="tab" data-go="map" aria-selected="false" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>Mappa</button>
+  <button class="tab" role="tab" data-go="info" aria-selected="false" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>Info</button>
+</div></nav>
+
+<script>
+(function(){
+const PROG = "https://lucca2026.luccacomicsandgames.com/it/programma";
+
+// Sedi: coordinate approssimate (WGS84)
+const VENUES = {
+  napoleone:{name:"Piazza Napoleone",area:"Area Comics",lat:43.8412,lon:10.5026},
+  giglio:{name:"Teatro del Giglio",area:"Piazza del Giglio",lat:43.8417,lon:10.5036},
+  astra:{name:"Cinema Astra",area:"Area Movie · Piazza del Giglio",lat:43.8421,lon:10.5041},
+  sanromano:{name:"Auditorium San Romano",area:"Piazza San Romano",lat:43.8417,lon:10.5011},
+  sangirolamo:{name:"Auditorium San Girolamo",area:"Via San Girolamo",lat:43.8427,lon:10.5048},
+  sanfrancesco:{name:"Auditorium San Francesco",area:"Piazza San Francesco",lat:43.8453,lon:10.5098},
+  guinigi:{name:"Palazzo Guinigi",area:"Mostre · Via Guinigi",lat:43.8436,lon:10.5078},
+  bdm:{name:"Fondazione Banca del Monte",area:"Mostre e auditorium · Piazza San Martino",lat:43.8404,lon:10.5052},
+  sanmartino:{name:"Padiglione San Martino",area:"TASCHEN · Piazza San Martino",lat:43.8409,lon:10.5060},
+  antelminelli:{name:"Piazza Antelminelli",area:"Padiglione Gruppo Mondadori",lat:43.8403,lon:10.5068},
+  collegio:{name:"Real Collegio",area:"Area Junior · Family Palace",lat:43.8457,lon:10.5008},
+  carducci:{name:"Padiglione Carducci",area:"Area Games · gioco da tavolo",lat:43.8391,lon:10.4968},
+  verdi:{name:"Piazzale Verdi",area:"Area Videogames",lat:43.8422,lon:10.4962},
+  cavallerizza:{name:"Cavallerizza",area:"Area Videogames",lat:43.8437,lon:10.4975},
+  polofiere:{name:"Polo Fiere",area:"Japan Town · fuori dalle Mura",lat:43.8305,lon:10.4985},
+  palazzetto:{name:"Palazzetto dello Sport",area:"eSports · posizione approssimativa",lat:43.8396,lon:10.4895},
+  tbc:{name:"Sede da confermare",area:"Vedi programma ufficiale",lat:null,lon:null}
+};
+// Punti di riferimento per chi non usa il GPS
+const LANDMARKS = [
+  ["napoleone","Piazza Napoleone"],["sanmichele","Piazza San Michele",43.8430,10.5032],
+  ["anfiteatro","Piazza dell'Anfiteatro",43.8459,10.5058],["sanmartino","Duomo di San Martino"],
+  ["giglio","Piazza del Giglio"],["collegio","San Frediano / Real Collegio"],
+  ["verdi","Piazzale Verdi / Porta Sant'Anna"],["carducci","Padiglione Carducci"],
+  ["sanfrancesco","Piazza San Francesco"],["guinigi","Torre Guinigi"],
+  ["stazione","Stazione FS di Lucca",43.8375,10.5072],["polofiere","Polo Fiere / Japan Town"]
+];
+
+const THEMES = {
+  fumetto:"Fumetto", games:"Giochi da tavolo", videogiochi:"Videogiochi", cinema:"Cinema e serie",
+  musica:"Musica", japan:"Anime e manga", junior:"Bambini e famiglie", cosplay:"Cosplay",
+  mostre:"Mostre", libri:"Libri", divulgazione:"Divulgazione"
+};
+
+const DAYS = [["2026-10-28","Mer 28"],["2026-10-29","Gio 29"],["2026-10-30","Ven 30"],["2026-10-31","Sab 31"],["2026-11-01","Dom 1"]];
+
+// Programma raccolto da fonti di stampa. tbc=true: orario o sede non confermati.
+const EVENTS = [
+  {id:"e01",d:"2026-10-28",s:"15:00",e:"16:00",v:"giglio",t:"Go Nagai: Maxishowcase",th:["fumetto","japan"],g:"Go Nagai",x:"Il papà di Mazinga, Goldrake e Devilman incontra il pubblico."},
+  {id:"e02",d:"2026-10-29",s:"10:30",e:"12:00",v:"collegio",t:"Laboratorio di disegno con Chris Riddell",th:["junior","fumetto","libri"],g:"Chris Riddell",x:"I bambini inventano personaggi e storie attraverso il disegno. Al Family Palace."},
+  {id:"e03",d:"2026-10-29",s:"12:00",e:"13:00",v:"sanromano",t:"Frank Miller: 40 anni dopo la Rivoluzione",th:["fumetto"],g:"Frank Miller",x:"La carriera di Miller a quarant'anni da Il ritorno del Cavaliere Oscuro. Con Panini Comics."},
+  {id:"e04",d:"2026-10-29",s:"14:00",e:"15:30",v:"astra",t:"Caro Mondo Crudele: presentazione del film",th:["cinema","fumetto"],g:"Zerocalcare",x:"Zerocalcare presenta il nuovo film."},
+  {id:"e05",d:"2026-10-29",s:"14:30",e:null,v:"tbc",t:"Incontro con Hideki Kamiya",th:["videogiochi"],g:"Hideki Kamiya",x:"Il game director di Bayonetta e Okami. Le fonti indicano giorni diversi (29 e 30 ottobre).",tbc:true},
+  {id:"e06",d:"2026-10-29",s:"16:30",e:"17:30",v:"bdm",t:"Live drawing di Peach Momoko",th:["fumetto","japan"],g:"Peach Momoko",x:"Disegno dal vivo all'Auditorium della Fondazione Banca del Monte."},
+  {id:"e07",d:"2026-10-29",s:"17:00",e:"18:30",v:"astra",t:"Dexter: Resurrection, stagione 2",th:["cinema"],g:"Michael C. Hall (in collegamento)",x:"Paramount+ presenta la seconda stagione, disponibile dal 30 ottobre."},
+  {id:"e08",d:"2026-10-29",s:"20:00",e:"22:00",v:"astra",t:"Look Back presentato da Hirokazu Kore-eda",th:["cinema","japan"],g:"Hirokazu Kore-eda",x:"Il regista giapponese presenta il film."},
+  {id:"e09",d:"2026-10-29",s:"21:00",e:null,v:"giglio",t:"Lucca Comics & Games Awards 2026",th:["fumetto","games"],g:"",x:"La serata di premiazione del festival. Orario indicativo.",tbc:true},
+  {id:"e10",d:"2026-10-30",s:"15:00",e:"16:00",v:"sanfrancesco",t:"Control Resonant: incontro con Mikael Kasurinen",th:["videogiochi"],g:"Mikael Kasurinen",x:"Il creative director incontra il pubblico. Modera Andrea Porta."},
+  {id:"e11",d:"2026-10-30",s:"21:30",e:"23:00",v:"giglio",t:"Concerto dei Cavalieri del Re",th:["musica","japan"],g:"Cavalieri del Re",x:"Le sigle dei cartoni animati più amati."},
+  {id:"e12",d:"2026-10-31",s:"10:00",e:"11:00",v:"giglio",t:"Career Masterclass di Yoshinori Kitase",th:["videogiochi"],g:"Yoshinori Kitase",x:"Il producer di Final Fantasy racconta la sua carriera."},
+  {id:"e13",d:"2026-10-31",s:"14:00",e:"15:30",v:"astra",t:"Il Gatto col Cappello: anteprima nazionale",th:["cinema","junior"],g:"",x:"Proiezione in anteprima."},
+  {id:"e14",d:"2026-10-31",s:"14:00",e:null,v:"tbc",t:"Santa, I did something bad: incontro",th:["libri"],g:"Stefania S, Hazel Riley",x:"Presentazione del libro.",tbc:true},
+  {id:"e15",d:"2026-10-31",s:"16:00",e:null,v:"tbc",t:"Alberto Angela dialoga con Gianluca Gazzoli",th:["divulgazione"],g:"Alberto Angela, Gianluca Gazzoli",x:"Incontro sul palco del festival.",tbc:true},
+  {id:"e16",d:"2026-10-31",s:null,e:null,v:"giglio",t:"Presentazione Inchiostro Simpatico",th:["fumetto"],g:"",x:"Su prenotazione.",tbc:true},
+  {id:"e17",d:"2026-10-31",s:null,e:null,v:"giglio",t:"Yoko Kanno in concerto",th:["musica","japan"],g:"Yoko Kanno",x:"Concerto dedicato alle sue colonne sonore (Cowboy Bebop, Ghost in the Shell). Presente a Lucca il 31 ottobre e il 1° novembre.",tbc:true},
+  {id:"e18",d:"2026-11-01",s:"10:00",e:"11:00",v:"sanromano",t:"La fine del mondo: un anno di rivista",th:["fumetto"],g:"Zerocalcare e altri autori",x:"A un anno dall'esordio della rivista. Modera Mara Famularo."},
+  {id:"e19",d:"2026-11-01",s:"13:30",e:"15:00",v:"astra",t:"I Cavalieri dello Zodiaco: incontro e proiezione",th:["cinema","japan"],g:"",x:"Per i 40 anni dell'anime."},
+  {id:"e20",d:"2026-11-01",s:"14:00",e:"17:30",v:"sanfrancesco",t:"Lucca Cosplay Contest",th:["cosplay"],g:"",x:"La gara cosplay del festival."},
+  {id:"e21",d:"2026-11-01",s:"15:30",e:"17:30",v:"astra",t:"KPop Demon Hunters: sing along",th:["cinema","musica","junior"],g:"",x:"Proiezione in versione karaoke."},
+  {id:"e22",d:"2026-11-01",s:"18:00",e:"20:00",v:"astra",t:"Hunger Games – L'alba sulla mietitura: fan screening",th:["cinema"],g:"",x:"Proiezione speciale per i fan."},
+  {id:"e23",d:"2026-11-01",s:null,e:null,v:"tbc",t:"Giga Party anni '90",th:["musica"],g:"",x:"La festa di chiusura a tema anni Novanta.",tbc:true},
+  {id:"e24",d:"2026-11-01",s:null,e:null,v:"tbc",t:"Lucca60Love: giornata del romance",th:["libri","fumetto"],g:"",x:"Una giornata di incontri dedicata al romance.",tbc:true},
+  // Mostre: aperte tutti i giorni del festival
+  {id:"m01",d:"all",s:"09:00",e:"19:00",v:"guinigi",t:"Legacy – La mostra",th:["mostre","fumetto"],g:"",x:"Sessant'anni di festival, con POLI.design. Occupa il secondo piano. Aperta fino al 30 settembre 2027."},
+  {id:"m02",d:"all",s:"09:00",e:"19:00",v:"guinigi",t:"Lucky Luke: Più veloce della sua ombra",th:["mostre","fumetto"],g:"Morris",x:"Ottant'anni di Lucky Luke con tavole originali dagli archivi di Morris."},
+  {id:"m03",d:"all",s:"09:00",e:"19:00",v:"guinigi",t:"Tillie Walden: Time Capsule",th:["mostre","fumetto"],g:"Tillie Walden",x:"In collaborazione con BAO Publishing."},
+  {id:"m04",d:"all",s:"09:00",e:"19:00",v:"guinigi",t:"Valentina: omaggio a Guido Crepax",th:["mostre","fumetto"],g:"Guido Crepax",x:"Aperta fino al 1° novembre."},
+  {id:"m05",d:"all",s:"09:00",e:"19:00",v:"guinigi",t:"L'universo visionario di Daniel Dociu",th:["mostre","videogiochi"],g:"Daniel Dociu",x:"Concept art del celebre art director."},
+  {id:"m06",d:"all",s:"09:00",e:"19:00",v:"bdm",t:"Tocchi da maestro: Claudio Castellini",th:["mostre","fumetto"],g:"Claudio Castellini",x:"L'autore del manifesto 2026. Palazzo delle Esposizioni."},
+  {id:"m07",d:"all",s:"09:00",e:"19:00",v:"bdm",t:"Go Nagai: Sole, cuore e acciaio",th:["mostre","fumetto","japan"],g:"Go Nagai",x:"Dal 28 ottobre al 1° novembre."},
+  {id:"m08",d:"all",s:"09:00",e:"19:00",v:"polofiere",t:"SPOKON: sport, lacrime e vittoria!",th:["mostre","japan"],g:"",x:"Il manga sportivo in mostra a Japan Town."},
+  // Aree permanenti
+  {id:"a01",d:"all",s:"09:00",e:"19:00",v:"carducci",t:"Area Games: novità del gioco da tavolo",th:["games"],g:"",x:"Editori e anteprime dei grandi marchi del gioco da tavolo."},
+  {id:"a02",d:"all",s:"09:00",e:"19:00",v:"verdi",t:"Area Videogames",th:["videogiochi"],g:"",x:"Postazioni di gioco e stand dei publisher. Anche alla Cavallerizza."},
+  {id:"a03",d:"all",s:"09:00",e:"19:00",v:"polofiere",t:"Japan Town",th:["japan"],g:"",x:"Manga, anime e cultura giapponese."},
+  {id:"a04",d:"all",s:"09:00",e:"19:00",v:"palazzetto",t:"Area eSports",th:["videogiochi"],g:"",x:"Tornei e competizioni."},
+  {id:"a05",d:"all",s:"09:00",e:"19:00",v:"collegio",t:"Family Palace – Lucca Junior",th:["junior"],g:"",x:"Laboratori e spazi per bambini e famiglie."},
+  {id:"a06",d:"all",s:"09:00",e:"19:00",v:"napoleone",t:"Area Comics",th:["fumetto"],g:"",x:"Gli editori di fumetto nei padiglioni della piazza."},
+  {id:"a07",d:"all",s:"09:00",e:"19:00",v:"antelminelli",t:"Padiglione Gruppo Mondadori",th:["libri","fumetto"],g:"",x:"Novità editoriali e firmacopie."},
+  {id:"a08",d:"all",s:"09:00",e:"19:00",v:"sanmartino",t:"Padiglione TASCHEN",th:["libri"],g:"",x:"Libri illustrati e d'arte."}
+];
+
+// ---------- stato ----------
+const store = {
+  get(k,def){try{const v=localStorage.getItem("l60:"+k);return v?JSON.parse(v):def}catch(e){return def}},
+  set(k,v){try{localStorage.setItem("l60:"+k,JSON.stringify(v))}catch(e){}}
+};
+let favs = new Set(store.get("favs",[]));
+let pos = store.get("pos",{lat:VENUES.napoleone.lat,lon:VENUES.napoleone.lon,label:"Piazza Napoleone",src:"example"});
+let when = "now", theme = null, day = null, q = "";
+
+// ---------- utility ----------
+const $ = s=>document.querySelector(s);
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function hav(a,b,c,d){const R=6371000,r=Math.PI/180,x=(c-a)*r,y=(d-b)*r;const h=Math.sin(x/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin(y/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
+function distTo(v){const V=VENUES[v];if(!V||V.lat==null)return null;return hav(pos.lat,pos.lon,V.lat,V.lon)}
+function fmtDist(m){if(m==null)return "";const walk=Math.max(1,Math.round(m*1.3/75));return (m<1000?Math.round(m/10)*10+" m":(m/1000).toFixed(1).replace(".",",")+" km")+" · "+walk+" min a piedi"}
+function todayISO(){const n=new Date();return n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0")+"-"+String(n.getDate()).padStart(2,"0")}
+function mins(hm){if(!hm)return null;const [h,m]=hm.split(":").map(Number);return h*60+m}
+function nowMins(){const n=new Date();return n.getHours()*60+n.getMinutes()}
+function isFestivalDay(iso){return DAYS.some(d=>d[0]===iso)}
+function dayLabel(iso){const d=DAYS.find(x=>x[0]===iso);return d?d[1]:iso}
+
+// stato temporale di un evento rispetto ad adesso
+function status(ev){
+  const t=todayISO();
+  const evDay = ev.d==="all" ? (isFestivalDay(t)?t:null) : ev.d;
+  if(!evDay) return {k:"none"};
+  if(evDay<t) return {k:"past",txt:"Concluso"};
+  if(evDay>t) return {k:"future"};
+  const s=mins(ev.s), e=mins(ev.e) ?? (s!=null?s+60:null), n=nowMins();
+  if(s==null) return {k:"tbc",txt:"Orario da confermare"};
+  if(n>=e) return {k:"past",txt:"Concluso"};
+  if(n>=s) return {k:"now",txt:"In corso"};
+  const diff=s-n;
+  if(diff<=180) return {k:"soon",txt: diff<60?"Tra "+diff+" min":"Tra "+Math.floor(diff/60)+" h "+(diff%60? diff%60+" min":"")};
+  return {k:"later",txt:"Più tardi"};
+}
+
+function mapsLink(v){const V=VENUES[v];if(!V||V.lat==null)return null;return "https://www.google.com/maps/dir/?api=1&travelmode=walking&destination="+V.lat+","+V.lon}
+
+function card(ev,{showDist=true,showDay=true}={}){
+  const V=VENUES[ev.v], st=status(ev), dm=distTo(ev.v);
+  const timeTxt = ev.s ? ev.s+(ev.e?"<small>→ "+ev.e+"</small>":"") : "<small>da<br>definire</small>";
+  const dayTxt = ev.d==="all" ? "Tutti i giorni" : dayLabel(ev.d);
+  let pill="";
+  if(st.k==="now") pill='<span class="pill now">● In corso</span>';
+  else if(st.k==="soon") pill='<span class="pill soon">'+esc(st.txt)+'</span>';
+  else if(st.k==="past") pill='<span class="pill past">Concluso</span>';
+  if(ev.tbc) pill+=' <span class="pill tbc">Da confermare</span>';
+  const ml=mapsLink(ev.v);
+  return `<article class="card${st.k==="past"?" is-past":""}">
+    <div class="time">${timeTxt}${showDay?"<small>"+esc(dayTxt)+"</small>":""}</div>
+    <div class="row" style="gap:6px">${ev.th.map(t=>'<span class="tag">'+esc(THEMES[t])+'</span>').join("")} ${pill}</div>
+    <h3>${esc(ev.t)}</h3>
+    <div class="meta">${esc(V.name)}${V.area?" · "+esc(V.area):""}${ev.g?"<br>Con: "+esc(ev.g):""}</div>
+    <p class="desc">${esc(ev.x)}</p>
+    <div class="acts">
+      ${showDist&&dm!=null?'<span class="dist">'+fmtDist(dm)+'</span>':""}
+      ${ml?'<a href="'+ml+'" target="_blank" rel="noopener">Portami lì</a>':""}
+      <a href="${PROG}" target="_blank" rel="noopener">Sul sito ufficiale</a>
+      <button class="fav" type="button" data-fav="${ev.id}" aria-pressed="${favs.has(ev.id)}" aria-label="${favs.has(ev.id)?"Togli dal":"Aggiungi al"} mio programma">${favs.has(ev.id)?"★":"☆"}</button>
+    </div>
+  </article>`;
+}
+
+// ---------- Vicino a me ----------
+function renderNear(){
+  const t=todayISO(), festival=isFestivalDay(t);
+  let list=EVENTS.slice();
+  if(when==="now"){
+    list=list.filter(ev=>{const s=status(ev);return s.k==="now"||s.k==="soon"});
+  }else if(when==="today"){
+    list=list.filter(ev=>ev.d==="all"?festival:ev.d===t).filter(ev=>status(ev).k!=="past");
+  }
+  list.sort((a,b)=>{
+    const da=distTo(a.v), db=distTo(b.v);
+    if(da==null&&db==null) return 0; if(da==null) return 1; if(db==null) return -1;
+    return da-db || (mins(a.s)||0)-(mins(b.s)||0);
+  });
+  let html="";
+  if(!festival && when!=="all") html='<div class="empty">Oggi non è un giorno di festival (28 ottobre – 1° novembre 2026). Scegli "Tutti i giorni" per vedere l\'intero programma.</div>';
+  else if(!list.length) html='<div class="empty">Nessun evento nelle prossime 3 ore in programma. Prova "Tutto oggi".</div>';
+  else html=list.map(ev=>card(ev,{showDay:when==="all"})).join("");
+  $("#nearList").innerHTML=html;
+  const lbl = pos.src==="gps"?"La tua posizione GPS":pos.label;
+  const sub = pos.src==="example"?"Esempio. Usa il GPS o scegli dove ti trovi.":pos.src==="gps"?"Precisione circa "+Math.round(pos.acc||0)+" m":"Scelta manuale";
+  $("#whereLabel").innerHTML="Posizione: "+esc(lbl)+" <small>"+esc(sub)+"</small>";
+}
+
+// ---------- Cerca ----------
+function norm(s){return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")}
+function renderSearch(){
+  const nq=norm(q.trim());
+  let list=EVENTS.filter(ev=>{
+    if(theme && !ev.th.includes(theme)) return false;
+    if(day && !(ev.d===day || ev.d==="all")) return false;
+    if(nq){
+      const hay=norm([ev.t,ev.g,ev.x,VENUES[ev.v].name,VENUES[ev.v].area,ev.th.map(t=>THEMES[t]).join(" ")].join(" "));
+      return nq.split(/\s+/).every(w=>hay.includes(w));
+    }
+    return true;
+  });
+  list.sort((a,b)=>(a.d==="all")-(b.d==="all") || a.d.localeCompare(b.d) || (mins(a.s)??9999)-(mins(b.s)??9999));
+  $("#countLbl").textContent=list.length+(list.length===1?" risultato":" risultati");
+  $("#searchList").innerHTML=list.length?list.map(ev=>card(ev)).join(""):'<div class="empty">Nessun risultato. Prova un altro tema o togli il filtro sul giorno.</div>';
+}
+function buildChips(){
+  $("#themeChips").innerHTML='<button class="chip" type="button" data-theme="" aria-pressed="true">Tutti</button>'+
+    Object.entries(THEMES).map(([k,v])=>`<button class="chip" type="button" data-theme="${k}" aria-pressed="false">${esc(v)}</button>`).join("");
+  $("#dayChips").innerHTML='<button class="chip" type="button" data-day="" aria-pressed="true">Tutti</button>'+
+    DAYS.map(([k,v])=>`<button class="chip" type="button" data-day="${k}" aria-pressed="false">${v}</button>`).join("");
+}
+
+// ---------- Mappa ----------
+const B={lon0:10.4878,lon1:10.5150,lat0:43.8366,lat1:43.8492};
+const W=600,H=420;
+function px(lat,lon){
+  const k=Math.cos(43.842*Math.PI/180);
+  const sx=W/((B.lon1-B.lon0)*k), sy=H/(B.lat1-B.lat0), s=Math.min(sx,sy);
+  const offX=(W-(B.lon1-B.lon0)*k*s)/2, offY=(H-(B.lat1-B.lat0)*s)/2;
+  return [offX+(lon-B.lon0)*k*s, offY+(B.lat1-lat)*s];
+}
+function unpx(x,y){
+  const k=Math.cos(43.842*Math.PI/180);
+  const sx=W/((B.lon1-B.lon0)*k), sy=H/(B.lat1-B.lat0), s=Math.min(sx,sy);
+  const offX=(W-(B.lon1-B.lon0)*k*s)/2, offY=(H-(B.lat1-B.lat0)*s)/2;
+  return [B.lat1-(y-offY)/s, B.lon0+(x-offX)/(k*s)];
+}
+const WALLS=[[43.8480,10.4978],[43.8486,10.5030],[43.8482,10.5085],[43.8470,10.5122],[43.8445,10.5140],[43.8410,10.5138],[43.8384,10.5115],[43.8373,10.5065],[43.8376,10.5005],[43.8388,10.4965],[43.8412,10.4945],[43.8442,10.4948],[43.8466,10.4958]];
+const AREA_COLOR = v=>({games:"#e0552b",videogiochi:"#7a3ff0",japan:"#e23d74",junior:"#1ba3a0",mostre:"#c78a00",cinema:"#2340d6",fumetto:"#2340d6"})[v]||"#2340d6";
+function venueTheme(v){const e=EVENTS.find(x=>x.v===v);return e?e.th[0]:"fumetto"}
+function renderMap(){
+  const svg=$("#map");
+  const wall=WALLS.map(p=>px(p[0],p[1]).map(n=>n.toFixed(1)).join(",")).join(" ");
+  let h=`<rect x="0" y="0" width="${W}" height="${H}" fill="var(--street)"/>
+  <polygon points="${wall}" fill="var(--panel)" stroke="var(--walls)" stroke-width="14" stroke-linejoin="round"/>
+  <polygon points="${wall}" fill="none" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <text x="${px(43.8484,10.5130)[0]}" y="${px(43.8484,10.5130)[1]}" font-family="var(--f-mono)" font-size="11" fill="var(--ink-2)">LE MURA</text>`;
+  // Polo Fiere fuori mappa
+  const pf=VENUES.polofiere; const pfEdge=px(B.lat0+0.0008,pf.lon);
+  Object.entries(VENUES).forEach(([k,V])=>{
+    if(V.lat==null) return;
+    let [x,y]=px(V.lat,V.lon), off=false;
+    if(V.lat<B.lat0){[x,y]=[pfEdge[0],H-18];off=true}
+    const c=AREA_COLOR(venueTheme(k));
+    h+=`<g class="pin" data-venue="${k}" style="cursor:pointer" tabindex="0" role="button" aria-label="${esc(V.name)}">
+      <circle cx="${x}" cy="${y}" r="16" fill="transparent"/>
+      ${off?`<path d="M${x-8} ${y-6} L${x} ${y+6} L${x+8} ${y-6}" fill="none" stroke="${c}" stroke-width="3"/>`:`<circle cx="${x}" cy="${y}" r="7" fill="${c}" stroke="var(--line)" stroke-width="2"/>`}
+      <text x="${x>W*0.7?x-10:x+10}" y="${y+4}" text-anchor="${x>W*0.7?"end":"start"}" font-family="var(--f-body)" font-weight="700" font-size="11" fill="var(--ink)" paint-order="stroke" stroke="var(--panel)" stroke-width="3">${esc(V.name)}${off?" ↓ ~1,3 km":""}</text>
+    </g>`;
+  });
+  // posizione utente
+  if(pos.lat>B.lat0&&pos.lat<B.lat1&&pos.lon>B.lon0&&pos.lon<B.lon1){
+    const [x,y]=px(pos.lat,pos.lon);
+    h+=`<circle cx="${x}" cy="${y}" r="16" fill="var(--marigold)" opacity=".35"/><circle cx="${x}" cy="${y}" r="7" fill="var(--marigold)" stroke="var(--line)" stroke-width="2.5"/>
+    <text x="${x}" y="${y-14}" text-anchor="middle" font-family="var(--f-display)" font-size="12" fill="var(--ink)" paint-order="stroke" stroke="var(--panel)" stroke-width="3">TU</text>`;
+  }
+  svg.innerHTML=h;
+}
+function renderVenueList(){
+  const arr=Object.entries(VENUES).filter(([k,V])=>V.lat!=null).map(([k,V])=>({k,V,d:distTo(k)})).sort((a,b)=>a.d-b.d);
+  $("#venueList").innerHTML=arr.map(({k,V,d})=>`<button class="venue" type="button" data-venue="${k}"><b>${esc(V.name)}</b><span>${esc(V.area)}<br>${fmtDist(d)}</span></button>`).join("");
+}
+function showVenue(k){
+  const V=VENUES[k]; const list=EVENTS.filter(e=>e.v===k).sort((a,b)=>(a.d==="all")-(b.d==="all")||a.d.localeCompare(b.d)||(mins(a.s)??9999)-(mins(b.s)??9999));
+  $("#venueTitle").textContent=V.name;
+  const p=$("#venuePanel"); p.hidden=false;
+  p.innerHTML=`<div class="row"><span class="maphint">${esc(V.area)} · ${fmtDist(distTo(k))}</span><a class="link" href="${mapsLink(k)}" target="_blank" rel="noopener">Portami lì</a><button class="btn" type="button" id="closeVenue" style="margin-left:auto;padding:6px 10px">Tutti i luoghi</button></div>`+
+    (list.length?list.map(ev=>card(ev,{showDist:false})).join(""):'<div class="empty">Nessun evento registrato qui.</div>');
+  $("#venueList").hidden=true;
+  p.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function closeVenue(){$("#venuePanel").hidden=true;$("#venueList").hidden=false;$("#venueTitle").textContent="Luoghi del festival"}
+
+// ---------- preferiti ----------
+function renderFavs(){
+  const list=EVENTS.filter(e=>favs.has(e.id)).sort((a,b)=>a.d.localeCompare(b.d)||(mins(a.s)??9999)-(mins(b.s)??9999));
+  $("#favList").innerHTML=list.length?list.map(ev=>card(ev)).join(""):'<div class="empty">Ancora niente. Tocca ☆ su un evento per aggiungerlo.</div>';
+}
+
+// ---------- posizione ----------
+function setPos(p){pos=p;store.set("pos",p);renderAll()}
+function fillPlaces(){
+  $("#placeSel").innerHTML='<option value="">Sono vicino a…</option>'+LANDMARKS.map((l,i)=>`<option value="${i}">${esc(l[1])}</option>`).join("");
+}
+$("#placeSel").addEventListener("change",e=>{
+  const l=LANDMARKS[e.target.value]; if(!l) return;
+  const lat=l[2]??VENUES[l[0]].lat, lon=l[3]??VENUES[l[0]].lon;
+  setPos({lat,lon,label:l[1],src:"manual"});
+  $("#gpsMsg").hidden=true;
+});
+$("#gpsBtn").addEventListener("click",()=>{
+  const msg=$("#gpsMsg");
+  if(!("geolocation" in navigator)){msg.hidden=false;msg.textContent="Questo browser non fornisce la posizione. Scegli dall'elenco dove ti trovi.";return}
+  msg.hidden=false;msg.textContent="Cerco la tua posizione…";
+  navigator.geolocation.getCurrentPosition(p=>{
+    msg.hidden=true;
+    const lat=p.coords.latitude, lon=p.coords.longitude;
+    const far=hav(lat,lon,VENUES.napoleone.lat,VENUES.napoleone.lon)>8000;
+    setPos({lat,lon,acc:p.coords.accuracy,label:"GPS",src:"gps"});
+    if(far){msg.hidden=false;msg.textContent="Sembri lontano da Lucca: le distanze saranno grandi. Puoi scegliere un punto dall'elenco per simulare la visita."}
+  },err=>{
+    msg.textContent="Posizione non disponibile ("+(err.code===1?"permesso negato":"segnale assente")+"). Scegli dall'elenco dove ti trovi, oppure tocca un punto sulla mappa.";
+  },{enableHighAccuracy:true,timeout:12000,maximumAge:60000});
+});
+
+// ---------- eventi UI ----------
+document.addEventListener("click",e=>{
+  const f=e.target.closest("[data-fav]");
+  if(f){const id=f.dataset.fav; favs.has(id)?favs.delete(id):favs.add(id); store.set("favs",[...favs]); renderAll(); return}
+  const w=e.target.closest("[data-when]");
+  if(w){when=w.dataset.when;document.querySelectorAll("[data-when]").forEach(b=>b.setAttribute("aria-pressed",b===w));renderNear();return}
+  const th=e.target.closest("[data-theme]");
+  if(th){theme=th.dataset.theme||null;document.querySelectorAll("[data-theme]").forEach(b=>b.setAttribute("aria-pressed",b===th));renderSearch();return}
+  const dy=e.target.closest("[data-day]");
+  if(dy){day=dy.dataset.day||null;document.querySelectorAll("[data-day]").forEach(b=>b.setAttribute("aria-pressed",b===dy));renderSearch();return}
+  const tab=e.target.closest("[data-go]");
+  if(tab){go(tab.dataset.go);return}
+  if(e.target.closest("#closeVenue")){closeVenue();return}
+  const vn=e.target.closest("[data-venue]");
+  if(vn){showVenue(vn.dataset.venue);return}
+  if(e.target.closest("#map")){
+    const svg=$("#map"), r=svg.getBoundingClientRect();
+    const x=(e.clientX-r.left)*W/r.width, y=(e.clientY-r.top)*H/r.height;
+    const [lat,lon]=unpx(x,y);
+    setPos({lat,lon,label:"Punto scelto sulla mappa",src:"manual"});
+  }
+});
+$("#map").addEventListener("keydown",e=>{if(e.key==="Enter"){const p=e.target.closest("[data-venue]");if(p)showVenue(p.dataset.venue)}});
+$("#q").addEventListener("input",e=>{q=e.target.value;renderSearch()});
+
+function go(v){
+  document.querySelectorAll("section.view").forEach(s=>s.hidden=s.dataset.view!==v);
+  document.querySelectorAll("[data-go]").forEach(b=>b.setAttribute("aria-selected",b.dataset.go===v));
+  try{if(location.hash!=="#"+v) history.replaceState(null,"","#"+v)}catch(e){}
+  store.set("tab",v); window.scrollTo(0,0);
+}
+
+function renderAll(){renderNear();renderSearch();renderMap();renderVenueList();renderFavs()}
+function tick(){
+  const n=new Date();
+  $("#clock").innerHTML=n.toLocaleDateString("it-IT",{weekday:"short",day:"numeric",month:"short"})+"<br>"+n.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
+}
+
+buildChips(); fillPlaces(); renderAll(); tick();
+setInterval(()=>{tick();renderNear()},60000);
+const start=(location.hash||"").slice(1);
+go(["near","search","map","info"].includes(start)?start:store.get("tab","near"));
+window.addEventListener("hashchange",()=>{const h=location.hash.slice(1);if(["near","search","map","info"].includes(h))go(h)});
+})();
+</script>
+
+</body></html>
